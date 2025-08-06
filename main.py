@@ -112,12 +112,12 @@ def main() -> None:
             print("LLM raw text response:", response.text, file=sys.stderr)
         sys.exit(1)
 
-    print("\n===== Invoice Data (JSON) ====")
     if invoice_data:
+        print("\n===== Invoice Data (JSON) ====")
         print(invoice_data.model_dump_json(indent=2))
 
-    print("\n===== Invoice Data (Pydantic Object) ====")
-    print(invoice_data)
+        print("\n===== Invoice Data (Pydantic Object) ====")
+        print(invoice_data)
 
 
 if __name__ == "__main__":

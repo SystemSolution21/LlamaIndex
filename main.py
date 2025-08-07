@@ -5,6 +5,7 @@ file, and uses a structured LLM to parse the content into the defined model. The
 extracted data is then printed in both JSON format and as a raw Pydantic object.
 """
 
+import os
 import sys
 from datetime import date
 from pathlib import Path
@@ -88,8 +89,8 @@ def main() -> None:
         print(f"Loading PDF from: {pdf_path}")
         pdf_reader = PDFReader()
         documents: List[Document] = pdf_reader.load_data(file=pdf_path)
-        text: str = documents[0].text
-        if not text.strip():
+        text: str = documents[0].text.strip()
+        if not text:
             print("Error: Failed to extract text from the PDF.", file=sys.stderr)
             sys.exit(1)
     except Exception as e:
@@ -99,7 +100,8 @@ def main() -> None:
     response: Optional[CompletionResponse] = None
     try:
         print("Initializing LLM and parsing invoice data...")
-        llm = OpenAI(model="gpt-4o", temperature=0.0)
+        MODEL_NAME: str = os.getenv(key="MODEL_NAME", default="gpt-4o-mini")
+        llm = OpenAI(model=MODEL_NAME, temperature=0.0)
         sllm: StructuredLLM = llm.as_structured_llm(output_cls=InvoiceData)
 
         response = sllm.complete(prompt=text)

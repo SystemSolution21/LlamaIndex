@@ -109,7 +109,7 @@ def main() -> None:
 
     except Exception as e:
         print(f"Error during LLM processing: {e}", file=sys.stderr)
-        # If the LLM call succeeded but parsing failed, print the raw text for debugging.
+        # LLM call success but fail parsing.
         if response:
             print("LLM raw text response:", response.text, file=sys.stderr)
         sys.exit(1)

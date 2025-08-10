@@ -5,9 +5,15 @@ from a PDF invoice. It defines a Pydantic model for the invoice data, reads a PD
 file, and uses a structured LLM to parse the content into the defined model. The
 extracted data is then printed in both JSON format and as a raw Pydantic object.
 
+## Running relative import scripts from parent directory
+
+```pwsh
+python -m structured_llm.main
+```
+
 ## PDF Structured Data Extraction Output
 
-Loading PDF from: C:\Users\path_to_your_folder\LlamaIndex\invoice\invoice.pdf</br>
+Loading PDF from: C:\Users\path_to_the_parent_directory\LlamaIndex\invoice\invoice.pdf</br>
 Initializing LLM and parsing invoice data...
 
 ### ===== Invoice Data (JSON) ====

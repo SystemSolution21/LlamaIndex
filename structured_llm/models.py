@@ -1,10 +1,17 @@
 # models.py
-"""Models for representing structured data from an invoice."""
-
+import os
 from datetime import date
 from typing import List, Optional
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
+from sqlalchemy import JSON, Column, Date, Float, Integer, String, create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+Base = declarative_base()
 
 
 # Structured single line item model
@@ -18,7 +25,8 @@ class LineItem(BaseModel):
         None, description="Discount amount for the line item."
     )
     sub_total: Optional[float] = Field(
-        description="Sub total for the line item ((quantity * unit_price) - discount)."
+        None,
+        description="Sub total for the line item ((quantity * unit_price) - discount).",
     )
     tax_rate: float = Field(..., description="Tax amount for the line item.")
     total_price: float = Field(
@@ -52,3 +60,58 @@ class InvoiceData(BaseModel):
     items: List[LineItem] = Field(
         ..., description="A list of all line items from the invoice."
     )
+
+
+class InvoiceORM(Base):
+    __tablename__ = "invoices"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    invoice_number = Column(String)
+    invoice_date = Column(Date)
+    vendor = Column(String)
+    vendor_address = Column(String)
+    vendor_email = Column(String)
+    vendor_phone = Column(String)
+    order_number = Column(String)
+    due_date = Column(Date)
+    total_due = Column(Float)
+    currency = Column(String)
+    customer = Column(String)
+    customer_address = Column(String)
+    customer_email = Column(String)
+    customer_phone = Column(String)
+    billing_address = Column(String)
+    billing_email = Column(String)
+    billing_phone = Column(String)
+    items = Column(JSON)
+
+
+engine = create_engine(DATABASE_URL if DATABASE_URL else "")
+Session = sessionmaker(bind=engine)
+Base.metadata.create_all(engine)
+
+
+def save_invoice_to_db(invoice_data: InvoiceData):
+    session = Session()
+    invoice = InvoiceORM(
+        invoice_number=invoice_data.invoice_number,
+        invoice_date=invoice_data.invoice_date,
+        vendor=invoice_data.vendor,
+        vendor_address=invoice_data.vendor_address,
+        vendor_email=invoice_data.vendor_email,
+        vendor_phone=invoice_data.vendor_phone,
+        order_number=invoice_data.order_number,
+        due_date=invoice_data.due_date,
+        total_due=invoice_data.total_due,
+        currency=invoice_data.currency,
+        customer=invoice_data.customer,
+        customer_address=invoice_data.customer_address,
+        customer_email=invoice_data.customer_email,
+        customer_phone=invoice_data.customer_phone,
+        billing_address=invoice_data.billing_address,
+        billing_email=invoice_data.billing_email,
+        billing_phone=invoice_data.billing_phone,
+        items=[item.model_dump() for item in invoice_data.items],
+    )
+    session.add(invoice)
+    session.commit()
+    session.close()

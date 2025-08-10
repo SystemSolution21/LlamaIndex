@@ -13,17 +13,13 @@ from pathlib import Path
 from tkinter import filedialog
 from typing import Any, List, Optional
 
-from dotenv import load_dotenv
 from llama_index.core.base.llms.types import CompletionResponse
 from llama_index.core.llms.structured_llm import StructuredLLM
 from llama_index.core.schema import Document
 from llama_index.llms.openai import OpenAI
 from llama_index.readers.file import PDFReader
 
-from .models import InvoiceData
-
-# Load environment variables from .env file
-load_dotenv()
+from .models import InvoiceData, save_invoice_to_db
 
 
 # Entry point
@@ -91,6 +87,9 @@ def main() -> None:
 
         print("\n===== Invoice Data (Pydantic Object) ====")
         print(invoice_data)
+
+        # Persist to database
+        save_invoice_to_db(invoice_data)
 
 
 if __name__ == "__main__":

@@ -1,9 +1,6 @@
 # Structured Data Extraction
 
-This script demonstrates how to use LlamaIndex and OpenAI to extract structured data
-from a PDF invoice. It defines a Pydantic model for the invoice data, reads a PDF
-file, and uses a structured LLM to parse the content into the defined model. The
-extracted data is then printed in both JSON format and as a raw Pydantic object.
+This project demonstrates an end-to-end pipeline for extracting structured data from PDF invoices. It leverages LlamaIndex and OpenAI's `StructuredLLM` to parse unstructured text from a PDF and map it to a predefined `InvoiceData` Pydantic model. The script then displays the extracted data in both JSON and Pydantic object formats for verification before persisting it to a database using SQLAlchemy.
 
 ## Running relative import scripts from parent directory
 

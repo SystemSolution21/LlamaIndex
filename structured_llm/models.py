@@ -1,16 +1,32 @@
 # models.py
+"""
+Defines data models for representing and storing invoice information.
+
+Module contains the Pydantic models used for structured data extraction
+from invoices, the corresponding SQLAlchemy ORM model for database persistence,
+and the logic for saving the extracted data to a database.
+
+It includes:
+- `LineItem`: A Pydantic model for a single line item in an invoice.
+- `InvoiceData`: A Pydantic model for the overall invoice data.
+- `InvoiceORM`: A SQLAlchemy ORM model that maps to the 'invoices' table.
+- `save_invoice_to_db`: A function to persist an `InvoiceData` object to the database.
+- Database engine and session setup, configured via a .env file.
+
+"""
+
 import os
 from datetime import date
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
-from sqlalchemy import JSON, Column, Date, Float, Integer, String, create_engine
+from sqlalchemy import JSON, Column, Date, Engine, Float, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+# Load environment variables from .env file
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 Base = declarative_base()
 
 
@@ -36,7 +52,7 @@ class LineItem(BaseModel):
 
 # Structured invoice data model
 class InvoiceData(BaseModel):
-    """A Pydantic model to represent structured data from an invoice."""
+    """A Pydantic model to represent structured data extracted from an invoice."""
 
     vendor: str = Field(..., description="Vendor name.")
     vendor_address: str = Field(..., description="Vendor address.")
@@ -63,34 +79,47 @@ class InvoiceData(BaseModel):
 
 
 class InvoiceORM(Base):
-    __tablename__ = "invoices"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    invoice_number = Column(String)
-    invoice_date = Column(Date)
-    vendor = Column(String)
-    vendor_address = Column(String)
-    vendor_email = Column(String)
-    vendor_phone = Column(String)
-    order_number = Column(String)
-    due_date = Column(Date)
-    total_due = Column(Float)
-    currency = Column(String)
-    customer = Column(String)
-    customer_address = Column(String)
-    customer_email = Column(String)
-    customer_phone = Column(String)
-    billing_address = Column(String)
-    billing_email = Column(String)
-    billing_phone = Column(String)
-    items = Column(JSON)
+    """An ORM model to represent structured invoice data in the database."""
+
+    __tablename__: str = "invoices"
+    id: Column[int] = Column(Integer, primary_key=True, autoincrement=True)
+    invoice_number: Column[str] = Column(String)
+    invoice_date: Column[date] = Column(Date)
+    vendor: Column[str] = Column(String)
+    vendor_address: Column[str] = Column(String)
+    vendor_email: Column[str] = Column(String)
+    vendor_phone: Column[str] = Column(String)
+    order_number: Column[str] = Column(String)
+    due_date: Column[date] = Column(Date)
+    total_due: Column[float] = Column(Float)
+    currency: Column[str] = Column(String)
+    customer: Column[str] = Column(String)
+    customer_address: Column[str] = Column(String)
+    customer_email: Column[str] = Column(String)
+    customer_phone: Column[str] = Column(String)
+    billing_address: Column[str] = Column(String)
+    billing_email: Column[str] = Column(String)
+    billing_phone: Column[str] = Column(String)
+    items: Column[Any] = Column(JSON)
 
 
-engine = create_engine(DATABASE_URL if DATABASE_URL else "")
+engine: Engine = create_engine(url=DATABASE_URL if DATABASE_URL else "")
 Session = sessionmaker(bind=engine)
 Base.metadata.create_all(engine)
 
 
-def save_invoice_to_db(invoice_data: InvoiceData):
+def save_invoice_to_db(invoice_data: InvoiceData) -> None:
+    """Saves the structured invoice data to the database.
+
+    Creates a new session, maps the `InvoiceData` Pydantic model
+    to the `InvoiceORM` SQLAlchemy model, adds it to the session, commits the
+    transaction, and closes the session.
+
+    Args:
+        invoice_data: An `InvoiceData` object containing the structured data
+            extracted from the invoice.
+    """
+
     session = Session()
     invoice = InvoiceORM(
         invoice_number=invoice_data.invoice_number,

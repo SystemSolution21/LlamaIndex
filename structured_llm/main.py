@@ -1,9 +1,19 @@
 # main.py
 """
-This script demonstrates how to use LlamaIndex and OpenAI to extract structured data
-from a PDF invoice. It defines a Pydantic model for the invoice data, reads a PDF
-file, and uses a structured LLM to parse the content into the defined model. The
-extracted data is then printed in both JSON format and as a raw Pydantic object.
+Main execution script for the invoice processing application.
+
+This script orchestrates the process of extracting structured data from an
+invoice PDF file. It performs the following steps:
+1.  Prompts the user to select a PDF invoice file using a graphical file dialog.
+2.  Reads the selected PDF and extracts its text content using `llama-index-readers-file`.
+3.  Initializes an OpenAI LLM (e.g., "gpt-4o-mini") and wraps it with
+    `StructuredLLM` to enforce output matching the `InvoiceData` Pydantic model.
+4.  Sends the extracted text to the LLM for parsing.
+5.  Prints the structured invoice data in both JSON and Pydantic object formats.
+6.  Persists the extracted data to a database using the `save_invoice_to_db` function.
+
+The script handles user cancellation, file errors, and LLM processing errors
+gracefully by printing informative messages to stderr and exiting.
 """
 
 import os
@@ -25,10 +35,21 @@ from .models import InvoiceData, save_invoice_to_db
 # Entry point
 def main() -> None:
     """
-    Entry point of the script.
+    Main function to run the invoice extraction and processing pipeline.
 
-    Loads a PDF, extracts text, and uses a structured LLM to parse invoice data,
-    then prints the results.
+    This function serves as the entry point for the script. It guides the user
+    through selecting a PDF file, processes the file to extract structured invoice
+    data using an LLM, displays the results, and saves them to a database.
+
+    The process includes:
+    - Using a Tkinter file dialog to get the path to an invoice PDF.
+    - Reading the PDF content with `PDFReader`.
+    - Using an OpenAI model via `StructuredLLM` to parse the text into an
+      `InvoiceData` object.
+    - Printing the parsed data for verification.
+    - Calling `save_invoice_to_db` to store the results.
+
+    Exits with a non-zero status code if any step fails.
     """
     dir_path: Path = Path(__file__).parent
 
@@ -89,7 +110,11 @@ def main() -> None:
         print(invoice_data)
 
         # Persist to database
-        save_invoice_to_db(invoice_data)
+        try:
+            print("\n===== Saving to database ====")
+            save_invoice_to_db(invoice_data=invoice_data)
+        except Exception as e:
+            print(f"Error saving to database: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":

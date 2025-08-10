@@ -54,3 +54,7 @@ Initializing LLM and parsing invoice data...
 InvoiceData(
 vendor='DEMO - Sliced Invoices' vendor_address='Suite 5A-1204\n123 Somewhere Street\nYour City AZ 12345' vendor_email='<admin@slicedinvoices.com>' vendor_phone=None invoice_number='INV-3337' order_number='12345' invoice_date=datetime.date(2016, 1, 25) due_date=datetime.date(2016, 1, 31) total_due=93.5 currency='USD' customer='Test Business' customer_address='123 Somewhere St\nMelbourne, VIC 3000' customer_email='<test@test.com>' customer_phone=None billing_address='123 Somewhere St\nMelbourne, VIC 3000' billing_email=None billing_phone=None items=[LineItem(description='Web Design\nThis is a sample description...', quantity=1.0, unit_price=85.0, discount=None, sub_total=85.0, tax_rate=8.5, total_price=93.5)]
 ```
+
+### ===== Persisting to Database =====
+
+Invoice data persisted to the database.

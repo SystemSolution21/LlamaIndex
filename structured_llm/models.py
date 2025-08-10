@@ -16,18 +16,28 @@ It includes:
 """
 
 import os
+import sys
 from datetime import date
 from typing import Any, List, Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Column, Date, Engine, Float, Integer, String, create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 # Load environment variables from .env file
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
-Base = declarative_base()
+
+# Database configuration
+DATABASE_URL: str | None = os.getenv(key="DATABASE_URL")
+if not DATABASE_URL:
+    print("Error:DATABASE_URL environment variables not set.", file=sys.stderr)
+    sys.exit(1)
+
+
+# SQLAlchemy ORM base class
+class Base(DeclarativeBase):
+    """Base class for SQLAlchemy ORM models."""
 
 
 # Structured single line item model
@@ -103,8 +113,9 @@ class InvoiceORM(Base):
     items: Column[Any] = Column(JSON)
 
 
+# Database engine and session setup
 engine: Engine = create_engine(url=DATABASE_URL if DATABASE_URL else "")
-Session = sessionmaker(bind=engine)
+Session: sessionmaker = sessionmaker(bind=engine)
 Base.metadata.create_all(engine)
 
 
@@ -120,27 +131,27 @@ def save_invoice_to_db(invoice_data: InvoiceData) -> None:
             extracted from the invoice.
     """
 
-    session = Session()
-    invoice = InvoiceORM(
-        invoice_number=invoice_data.invoice_number,
-        invoice_date=invoice_data.invoice_date,
-        vendor=invoice_data.vendor,
-        vendor_address=invoice_data.vendor_address,
-        vendor_email=invoice_data.vendor_email,
-        vendor_phone=invoice_data.vendor_phone,
-        order_number=invoice_data.order_number,
-        due_date=invoice_data.due_date,
-        total_due=invoice_data.total_due,
-        currency=invoice_data.currency,
-        customer=invoice_data.customer,
-        customer_address=invoice_data.customer_address,
-        customer_email=invoice_data.customer_email,
-        customer_phone=invoice_data.customer_phone,
-        billing_address=invoice_data.billing_address,
-        billing_email=invoice_data.billing_email,
-        billing_phone=invoice_data.billing_phone,
-        items=[item.model_dump() for item in invoice_data.items],
-    )
-    session.add(invoice)
-    session.commit()
-    session.close()
+    # Create a new session
+    with Session() as session:
+        invoice = InvoiceORM(
+            invoice_number=invoice_data.invoice_number,
+            invoice_date=invoice_data.invoice_date,
+            vendor=invoice_data.vendor,
+            vendor_address=invoice_data.vendor_address,
+            vendor_email=invoice_data.vendor_email,
+            vendor_phone=invoice_data.vendor_phone,
+            order_number=invoice_data.order_number,
+            due_date=invoice_data.due_date,
+            total_due=invoice_data.total_due,
+            currency=invoice_data.currency,
+            customer=invoice_data.customer,
+            customer_address=invoice_data.customer_address,
+            customer_email=invoice_data.customer_email,
+            customer_phone=invoice_data.customer_phone,
+            billing_address=invoice_data.billing_address,
+            billing_email=invoice_data.billing_email,
+            billing_phone=invoice_data.billing_phone,
+            items=[item.model_dump() for item in invoice_data.items],
+        )
+        session.add(instance=invoice)
+        session.commit()

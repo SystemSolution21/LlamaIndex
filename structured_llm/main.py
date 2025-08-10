@@ -111,7 +111,7 @@ def main() -> None:
 
         # Persist to database
         try:
-            print("\n===== Saving to database ====")
+            print("\n===== Persisting to database ====")
             save_invoice_to_db(invoice_data=invoice_data)
         except Exception as e:
             print(f"Error saving to database: {e}", file=sys.stderr)
